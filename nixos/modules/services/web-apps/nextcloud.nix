@@ -446,7 +446,13 @@ in {
       dbtableprefix = mkOption {
         type = types.nullOr types.str;
         default = null;
-        description = "Table prefix in Nextcloud's database.";
+        description = ''
+          Table prefix in Nextcloud's database.
+
+          __Note:__ since Nextcloud 20 it's not an option anymore to create a database
+          schema with a custom table prefix. This option only exists for backwards compatibility
+          with installations that were originally provisioned with Nextcloud <20.
+        '';
       };
       adminuser = mkOption {
         type = types.str;
@@ -793,6 +799,16 @@ in {
         '';
       };
     };
+
+    cron.memoryLimit = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      example = "1G";
+      description = ''
+        The `memory_limit` of PHP is equal to [](#opt-services.nextcloud.maxUploadSize).
+        The value can be customized for `nextcloud-cron.service` using this option.
+      '';
+    };
   };
 
   config = mkIf cfg.enable (mkMerge [
@@ -815,6 +831,13 @@ in {
       in (optional (cfg.poolConfig != null) ''
           Using config.services.nextcloud.poolConfig is deprecated and will become unsupported in a future release.
           Please migrate your configuration to config.services.nextcloud.poolSettings.
+        '')
+        ++ (optional (cfg.config.dbtableprefix != null) ''
+          Using `services.nextcloud.config.dbtableprefix` is deprecated. Fresh installations with this
+          option set are not allowed anymore since v20.
+
+          If you have an existing installation with a custom table prefix, make sure it is
+          set correctly in `config.php` and remove the option from your NixOS config.
         '')
         ++ (optional (versionOlder cfg.package.version "25") (upgradeWarning 24 "22.11"))
         ++ (optional (versionOlder cfg.package.version "26") (upgradeWarning 25 "23.05"))
@@ -1001,7 +1024,13 @@ in {
             Type = "exec";
             User = "nextcloud";
             ExecCondition = "${lib.getExe phpPackage} -f ${webroot}/occ status -e";
-            ExecStart = "${lib.getExe phpPackage} -f ${webroot}/cron.php";
+            ExecStart = lib.concatStringsSep " " ([
+              (lib.getExe phpPackage)
+            ] ++ optional (cfg.cron.memoryLimit != null) "-dmemory_limit=${cfg.cron.memoryLimit}"
+              ++ [
+              "-f"
+              "${webroot}/cron.php"
+            ]);
             KillMode = "process";
           };
         };
