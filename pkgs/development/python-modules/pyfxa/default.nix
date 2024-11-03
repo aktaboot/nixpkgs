@@ -14,6 +14,8 @@
   responses,
   setuptools,
   six,
+  hatchling,
+  parameterized,
 }:
 
 buildPythonPackage rec {
@@ -28,7 +30,10 @@ buildPythonPackage rec {
     hash = "sha256-dTsWFWaqX6YypNJz9WSlcxJlYOstmTu2ZgOG3RPSViw=";
   };
 
-  build-system = [ setuptools ];
+  build-system = [
+    setuptools
+    hatchling
+  ];
 
   dependencies = [
     cryptography
@@ -37,7 +42,6 @@ buildPythonPackage rec {
     pyjwt
     requests
     setuptools # imports pkg_resources
-    six
   ];
 
   nativeCheckInputs = [
@@ -45,6 +49,7 @@ buildPythonPackage rec {
     mock
     responses
     pytestCheckHook
+    parameterized
   ];
 
   pythonImportsCheck = [ "fxa" ];
