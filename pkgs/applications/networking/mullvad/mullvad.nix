@@ -13,7 +13,6 @@
   libwg,
   darwin,
   enableOpenvpn ? true,
-  openvpn-mullvad,
   shadowsocks-rust,
   installShellFiles,
   writeShellScriptBin,
@@ -93,7 +92,6 @@ rustPlatform.buildRustPackage rec {
       lib.optionalString enableOpenvpn ''
         mkdir -p $out/share/mullvad
         cp dist-assets/ca.crt $out/share/mullvad
-        ln -s ${openvpn-mullvad}/bin/openvpn $out/share/mullvad
         ln -s ${shadowsocks-rust}/bin/sslocal $out/share/mullvad
         ln -s $out/lib/libtalpid_openvpn_plugin.so $out/share/mullvad
       ''
@@ -117,7 +115,6 @@ rustPlatform.buildRustPackage rec {
 
   passthru = {
     inherit libwg;
-    inherit openvpn-mullvad;
   };
 
   meta = {
