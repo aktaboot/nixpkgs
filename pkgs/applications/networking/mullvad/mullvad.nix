@@ -30,18 +30,28 @@ let
 in
 rustPlatform.buildRustPackage rec {
   pname = "mullvad";
-  version = "2025.3";
+  version = "2025.5";
 
   src = fetchFromGitHub {
     owner = "mullvad";
     repo = "mullvadvpn-app";
     tag = version;
     fetchSubmodules = true;
-    hash = "sha256-IpGTqi0gSE2yXXou5fp+CryHfIKx0n3y/V4K2+ZO3k8=";
+    hash = "sha256-01R9oXL5tXpmVcYtRcaLyaVT+1O8UBsbC0w8aYdQKEA=";
   };
 
   useFetchCargoVendor = true;
-  cargoHash = "sha256-EJ8yk11H1QB+7CGjJYY5BjBAFTDK4d02/DJOQTVGFho=";
+  cargoHash = "sha256-nHXglSQLuh6G0u3FAzTJ2G4dz3PHtQJNzejTWW1WZno=";
+
+  cargoBuildFlags = [
+    "-p mullvad-daemon --bin mullvad-daemon"
+    "-p mullvad-cli --bin mullvad"
+    "-p mullvad-setup --bin mullvad-setup"
+    "-p mullvad-problem-report --bin mullvad-problem-report"
+    "-p mullvad-exclude --bin mullvad-exclude"
+    "-p tunnel-obfuscation --bin tunnel-obfuscation"
+    "-p talpid-openvpn-plugin --lib"
+  ];
 
   checkFlags = [
     "--skip=version_check"
@@ -79,14 +89,6 @@ rustPlatform.buildRustPackage rec {
   '';
 
   postFixup =
-    # Place all binaries in the 'mullvad-' namespace, even though these
-    # specific binaries aren't used in the lifetime of the program.
-    ''
-      for bin in relay_list translations-converter tunnel-obfuscation; do
-        mv "$out/bin/$bin" "$out/bin/mullvad-$bin"
-      done
-    ''
-    +
       # Files necessary for OpenVPN tunnels to work.
       lib.optionalString enableOpenvpn ''
         mkdir -p $out/share/mullvad
@@ -121,7 +123,7 @@ rustPlatform.buildRustPackage rec {
   meta = {
     description = "Mullvad VPN command-line client tools";
     homepage = "https://github.com/mullvad/mullvadvpn-app";
-    changelog = "https://github.com/mullvad/mullvadvpn-app/blob/2025.2/CHANGELOG.md";
+    changelog = "https://github.com/mullvad/mullvadvpn-app/blob/${version}/CHANGELOG.md";
     license = lib.licenses.gpl3Only;
     maintainers = with lib.maintainers; [ cole-h ];
     mainProgram = "mullvad";
