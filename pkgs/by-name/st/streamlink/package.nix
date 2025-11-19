@@ -57,6 +57,8 @@ python3Packages.buildPythonApplication rec {
       trio-websocket
       urllib3
       websocket-client
+      versioningit
+      pytest-cov
     ]
     ++ lib.attrVals extras optional-dependencies;
 
