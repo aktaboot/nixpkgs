@@ -83,6 +83,7 @@ python3Packages.buildPythonApplication rec {
       dezgeg
       zraexy
       DeeUnderscore
+      aktaboot
     ];
   };
 }
